@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TestEx1": {
+      "commandName": "Project",
+      "commandLineArgs": "%userprofile%\\source\\Pool C:\\Users\\ProgOtpadKor\\source\\repos\\TestEx1\\TestEx1\\bin\\Debug\\net5.0\\Test\\ %userprofile%\\source\\Pool olya privet"
+    }
+  }
+}
