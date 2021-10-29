@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using AhoCorasick;
 
 namespace TestEx1
 {
@@ -31,7 +32,7 @@ namespace TestEx1
         /// <param name="path">Путь к проверяемому файлу</param>
         public virtual void Handle(string path)
         {
-            if (IsDubiousFile(path).Result) //Если файл "подозрительный",
+            if (IsDubiousFile(path)) //Если файл "подозрительный",
                 CountDubiosFile++;          //то прибавь количество "подозрительных" файлов
             else                            //Если файл НЕ "подозрительный" и есть еще обработчики,
                 Successor?.Handle(path);    //то вызови следующий обработчик
@@ -42,7 +43,7 @@ namespace TestEx1
         /// </summary>
         /// <param name="path">Путь к проверяемому файлу</param>
         /// <returns></returns>
-        public abstract Task<bool> IsDubiousFile(string path);
+        public abstract bool IsDubiousFile(string path);
     }
 
     /// <summary>
@@ -57,9 +58,9 @@ namespace TestEx1
             Description = description;
             DubiousString = dubiousStr;
         }
-        public async override Task<bool> IsDubiousFile(string path) => await EvalFile(path);
+        public override bool IsDubiousFile(string path) => EvalFile(path);
 
-        protected async virtual Task<bool> EvalFile(string path)
+        protected virtual bool EvalFile(string path)
         {
             StreamReader sr = null;
             try
@@ -67,11 +68,44 @@ namespace TestEx1
                 sr = new StreamReader(path);
                 
                 string line;
-                while ((line = await sr.ReadLineAsync()) != null)
+                line = //sr.ReadToEnd();
+                new string(sr.ReadToEnd().Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());
+
+
+                Trie trie = new Trie();
+
+                // add words
+                string str = //DubiousString;//
+                                           new string(DubiousString.Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());// Replace(" ", "");
+                trie.Add(str);
+                // trie.Add("world");
+
+                // build search tree
+                trie.Build();
+
+                //string text = "hello and welcome to this beautiful world!";
+
+                //Trie<string, bool> trie = new Trie<string, bool>();
+                //trie.Add(new[] { "three", "four" }, true);
+                //trie.Build();
+
+                //var a = trie.Find(line);
+
+                // find words
+                var a = trie.Find(line);
+                int cnt = 0;
+                foreach (var word in a)
                 {
-                    if (line == DubiousString)
-                        return true;
+                    cnt++;
+                    Console.WriteLine(word + " " + path);
                 }
+                if (cnt > 0)
+                    return true;
+                //while ((line = await sr.ReadLineAsync()) != null)
+                //{
+                //    if (line == DubiousString)
+                //        return true;
+                //}
             }
             catch 
             {
@@ -91,12 +125,12 @@ namespace TestEx1
         public ExtInnerDubiousFile(string path, string description, string dubiousStr, string extension) 
             : base(path, description, dubiousStr) { Extension = extension; }
 
-        public async override Task<bool> IsDubiousFile(string path)
+        public override bool IsDubiousFile(string path)
         {
             if (Path.GetExtension(path).ToLower() != Extension)
                 return false;
 
-            return await base.IsDubiousFile(path);
+            return base.IsDubiousFile(path);
         }
     }
 }

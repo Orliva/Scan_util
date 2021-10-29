@@ -17,7 +17,7 @@ namespace TestEx1
         public TimeSpan ElapsedTime { get; private set; } // Время составления отчета
         public List<string> Result { get; private set; }
         private Stopwatch sw;
-        private DubiousFile startChainNode;
+        private DubiousFile startChainNode; ///Внедрить через конструктор !!!!!
         public Report(string dirPath)
         {
             sw = new Stopwatch();
@@ -60,9 +60,17 @@ namespace TestEx1
                 ShouldIncludePredicate = (ref FileSystemEntry entry) => !entry.IsDirectory, 
             };
 
+            int cnt = 0;
+            foreach (var s in fileNames)
+                cnt++;
+            Console.WriteLine(cnt);
             //  ParallelOptions opt = new ParallelOptions();
 
-            ParallelLoopResult resParallel = Parallel.ForEach(fileNames, Eval);
+            foreach(var f in fileNames)
+            {
+                Eval(f);
+            }
+          //  ParallelLoopResult resParallel = Parallel.ForEach(fileNames, Eval);
             //resParallel.
 
 
@@ -84,7 +92,7 @@ namespace TestEx1
             return Result;
         }
 
-        private void Eval(string path, ParallelLoopState state)
+        private void Eval(string path)
         {
             //  Console.WriteLine(path);
             startChainNode?.Handle(path);
