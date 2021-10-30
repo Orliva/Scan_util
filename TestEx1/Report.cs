@@ -67,9 +67,10 @@ namespace TestEx1
         /// <returns></returns>
         protected virtual List<string> CreateReport()
         {
+            EnumerationOptions o = new EnumerationOptions();
             //Получаем все файлы по указанному пути
             IEnumerable<string> fileNames = new FileSystemEnumerable<string>(Path, (ref FileSystemEntry entry) => entry.ToFullPath(),
-                new EnumerationOptions { IgnoreInaccessible = false, RecurseSubdirectories = true, AttributesToSkip = 0 })
+                new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = 0 })
             {
                 ShouldIncludePredicate = (ref FileSystemEntry entry) => !entry.IsDirectory, 
             };
