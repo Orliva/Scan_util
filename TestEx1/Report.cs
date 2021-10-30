@@ -20,20 +20,20 @@ namespace TestEx1
         public int CountFiles 
         { 
             get { return countFiles; }
-            private set { countFiles = value; } 
+            protected set { countFiles = value; } 
         }
 
         private int countError;                          // Количество возникших ошибок
         public int CountError 
         { 
             get { return countError; }
-            private set { countError = value; }
+            protected set { countError = value; }
         }
 
-        public TimeSpan ElapsedTime { get; private set; } // Время составления отчета
-        public List<string> Result { get; private set; }  //Отчет сканирования
-        
-        private readonly Stopwatch sw;
+        public TimeSpan ElapsedTime { get; protected set; } // Время составления отчета
+        public List<string> Result { get; protected set; }  //Отчет сканирования
+
+        protected readonly Stopwatch sw;
         protected DubiousFile startChainNode;             //Первый обработчик в цепочке обработчиков
 
         public Report(string dirPath, DubiousFile startChainNode)

@@ -7,7 +7,7 @@ namespace TestEx1
 {
 
     /// <summary>
-    /// Реализовать наблюдателя за CountParsingErrors, просматривать в репорте и увеличивать число ошибок сканирования!!!
+    /// Класс для чтения файлов
     /// </summary>
     class FileReader
     {
