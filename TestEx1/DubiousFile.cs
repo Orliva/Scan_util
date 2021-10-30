@@ -53,10 +53,14 @@ namespace TestEx1
     class InnerStrDubiousFile : DubiousFile
     {
         public string DubiousString { get; } //Строка, представляющая "подозрительное" содержимое
+        Trie trie;
         public InnerStrDubiousFile(string path, string description, string dubiousStr) : base(path)
         {
             Description = description;
-            DubiousString = dubiousStr;
+            DubiousString = new string(dubiousStr.Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());
+            trie = new Trie();
+            trie.Add(DubiousString);
+            trie.Build();
         }
         public override bool IsDubiousFile(string path) => EvalFile(path);
 
@@ -66,45 +70,35 @@ namespace TestEx1
             try
             {
                 sr = new StreamReader(path);
-                
-                string line;
-                line = //sr.ReadToEnd();
-                new string(sr.ReadToEnd().Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());
 
-
-                Trie trie = new Trie();
-
-                // add words
-                string str = //DubiousString;//
-                                           new string(DubiousString.Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());// Replace(" ", "");
-                trie.Add(str);
-                // trie.Add("world");
-
-                // build search tree
-                trie.Build();
-
-                //string text = "hello and welcome to this beautiful world!";
-
-                //Trie<string, bool> trie = new Trie<string, bool>();
-                //trie.Add(new[] { "three", "four" }, true);
-                //trie.Build();
-
-                //var a = trie.Find(line);
-
-                // find words
-                var a = trie.Find(line);
-                int cnt = 0;
-                foreach (var word in a)
+                string line = null;
+                try 
                 {
-                    cnt++;
-                    Console.WriteLine(word + " " + path);
+                    line = new string(sr.ReadToEnd().Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());
+                    if (trie.Find(line).Any())
+                        return true;
                 }
-                if (cnt > 0)
-                    return true;
-                //while ((line = await sr.ReadLineAsync()) != null)
+                catch
+                {
+                    line = null;
+                    GC.Collect();
+                    while ((line = new string(sr.ReadLine().Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray())) != null)
+                    {
+                        if (trie.Find(line).Any())
+                            return true;
+                        //if (line == DubiousString)
+                        //    return true;
+                    }
+                }
+                //line = //sr.ReadToEnd();
+                //new string(sr.ReadToEnd().Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray());
+
+                //while ((line = new string(sr.ReadLine().Where(c => !char.IsControl(c) && !char.IsWhiteSpace(c)).ToArray())) != null)
                 //{
-                //    if (line == DubiousString)
+                //    if (trie.Find(line).Any())
                 //        return true;
+                //    //if (line == DubiousString)
+                //    //    return true;
                 //}
             }
             catch 
