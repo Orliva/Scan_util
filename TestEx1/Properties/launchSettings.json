@@ -2,7 +2,7 @@
   "profiles": {
     "TestEx1": {
       "commandName": "Project",
-      "commandLineArgs": "%userprofile%\\source\\Pool C:\\Users\\ProgOtpadKor\\Downloads\\testPapka %userprofile%\\source C:\\Users\\ProgOtpadKor\\source\\repos\\TestEx1\\TestEx1\\bin\\Debug\\net5.0\\Test\\  olya privet"
+      "commandLineArgs": "%userprofile%\\source C:\\Users\\ProgOtpadKor\\Downloads\\testPapka %userprofile%\\source C:\\Users\\ProgOtpadKor\\source\\repos\\TestEx1\\TestEx1\\bin\\Debug\\net5.0\\Test\\  olya privet Y:\\testPapka "
     }
   }
 }
