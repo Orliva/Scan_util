@@ -1,34 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Enumeration;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace TestEx1
 {
+    /// <summary>
+    /// Класс отчета о сканировании
+    /// </summary>
     class Report
     {
-        public string Path { get; } // Директория которую будем сканировать
+        public string Path { get; }                      // Директория которую будем сканировать
         
-        private int countFiles;
-        public int CountFiles { 
+        private int countFiles;                          // Количество просканированных файлов
+        public int CountFiles 
+        { 
             get { return countFiles; }
             private set { countFiles = value; } 
-        } // Количество просканированных файлов
-        public int CountError { get; private set; } // Количество возникших ошибок (возможно удалить)
+        }
+
+        private int countError;                          // Количество возникших ошибок
+        public int CountError 
+        { 
+            get { return countError; }
+            private set { countError = value; }
+        }
+
         public TimeSpan ElapsedTime { get; private set; } // Время составления отчета
-        public List<string> Result { get; private set; }
-        private Stopwatch sw;
-        private DubiousFile startChainNode; ///Внедрить через конструктор !!!!!
-        public int CountParsingErrors { get; protected set; } // Количество ошибок анализа файлов
-        public Report(string dirPath)
+        public List<string> Result { get; private set; }  //Отчет сканирования
+        
+        private readonly Stopwatch sw;
+        protected DubiousFile startChainNode;             //Первый обработчик в цепочке обработчиков
+
+        public Report(string dirPath, DubiousFile startChainNode)
         {
             sw = new Stopwatch();
+            this.startChainNode = startChainNode;
             CountFiles = 0;
             CountError = 0;
             if (Directory.Exists(dirPath))
@@ -37,7 +48,10 @@ namespace TestEx1
                 Path = null;
         }
 
-        //Получить отчет
+        /// <summary>
+        /// Получить отчет
+        /// </summary>
+        /// <returns>Список представляющий готовый к выводу отчет</returns>
         public virtual List<string> GetReport()
         {
             sw.Restart();
@@ -47,45 +61,21 @@ namespace TestEx1
             return res;
         }
 
-        public async virtual Task<List<string>> GetReportAsync()
-        {
-            return await Task.Run(GetReport);
-        }
-
-        //Создать отчет
+        /// <summary>
+        /// Создать отчет
+        /// </summary>
+        /// <returns></returns>
         protected virtual List<string> CreateReport()
         {
-            DubiousFile jsFile = new InnerStrDubiousFile(Path, "JS detects: ", "<script>evil_script()</script>", ".js");
-            DubiousFile rmFile = new InnerStrDubiousFile(Path, "rm -rf detects: ", @"rm -rf %userprofile%\Documents");
-            DubiousFile runDllFile = new InnerStrDubiousFile(Path, "Rundll32 detects: ", @"Rundll32 sus.dll SusEntry");
-            jsFile.Successor = rmFile;
-            rmFile.Successor = runDllFile;
-            startChainNode = jsFile;
-
+            //Получаем все файлы по указанному пути
             IEnumerable<string> fileNames = new FileSystemEnumerable<string>(Path, (ref FileSystemEntry entry) => entry.ToFullPath(),
-                new EnumerationOptions { IgnoreInaccessible = true, RecurseSubdirectories = true, AttributesToSkip = 0 })
+                new EnumerationOptions { IgnoreInaccessible = false, RecurseSubdirectories = true, AttributesToSkip = 0 })
             {
                 ShouldIncludePredicate = (ref FileSystemEntry entry) => !entry.IsDirectory, 
             };
 
-            int cnt = 0;
-            foreach (var s in fileNames)
-                cnt++;
-            Console.WriteLine(cnt);
-            //  ParallelOptions opt = new ParallelOptions();
-            //FileReader fileReader = new FileReader();
-            //foreach(var f in fileNames)
-            //{
-            //    if (fileReader.ApplyToAllFile(f, startChainNode.Handle))
-            //        CountFiles++;
-            //    else
-            //    {
-            //        fileReader.ApplyToEachLineFile(f, startChainNode.Handle);
-            //        CountFiles++;
-            //    }
-            //  //  Eval(f);
-            //}
-            ParallelLoopResult resParallel = Parallel.ForEach(fileNames, (string file) => 
+            //Обрабатываем все найденные файлы
+            Parallel.ForEach(fileNames, (string file) => 
             {
                 FileReader fileReader = new FileReader();
                 if (fileReader.ApplyToAllFile(file, startChainNode.Handle))
@@ -95,35 +85,35 @@ namespace TestEx1
                     fileReader.ApplyToEachLineFile(file, startChainNode.Handle);
                     Interlocked.Increment(ref countFiles);
                 }
-            });// Eval);
-            //resParallel.
+            });
 
-            return GetResult(jsFile, rmFile, runDllFile);
+            return GetResult();
         }
 
-        private List<string> GetResult(params DubiousFile[] files)
+        /// <summary>
+        /// Получаем тело отчета о сканировании
+        /// </summary>
+        /// <returns></returns>
+        private List<string> GetResult()
         {
             Result = new List<string>();
             Result.Add("Processed files: " + CountFiles.ToString());
 
-            foreach (DubiousFile file in files)
+            int len = startChainNode.GetLengthOfChain() + 1;
+            for (int i = 0; i < len; i++)
             {
-                Result.Add(file.Description + file.CountDubiosFile.ToString());
-               // CountError += file.CountParsingErrors;
+                Result.Add(startChainNode.GetDescriptionOfChain(i) 
+                    + startChainNode.GetCountDubiousFileOfChain(i).ToString());
             }
+
             CountError = FileReader.CountParsingErrors;
             Result.Add("Errors: " + FileReader.CountParsingErrors.ToString());
 
+            string str = string.Format("{0:00}:{1:00}:{2:00}",
+                ElapsedTime.Hours, ElapsedTime.Minutes, ElapsedTime.Seconds);
+            Result.Add("Exection time: " + str);
+
             return Result;
-        }
-
-        private void Eval(string path)
-        {
-            //  Console.WriteLine(path);
-          //  startChainNode?.Handle(path);
-            CountFiles++;
-        }
-
-        
+        }   
     }
 }

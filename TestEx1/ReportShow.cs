@@ -3,11 +3,17 @@ using System.Collections.Generic;
 
 namespace TestEx1
 {
+    /// <summary>
+    /// Интерфейс вывода отчета
+    /// </summary>
     interface IReportShow
     {
         public void Show(Report report);
     }
 
+    /// <summary>
+    /// Класс вывода отчета на консоль
+    /// </summary>
     class ConsoleReportShow : IReportShow
     {
         private readonly string header;
@@ -16,23 +22,28 @@ namespace TestEx1
         public ConsoleReportShow()
         {
             separator = '=';
-            header = new string(separator, 15) + " Scan result " + new string(separator, 15);
-            footer = new string(separator, 43);
+            header = new string(separator, 12) + " Scan result " + new string(separator, 12);
+            footer = new string(separator, 37);
         }
 
+        /// <summary>
+        /// Вывод отчета
+        /// </summary>
+        /// <param name="report">Отчет, который требуется вывести на консоль</param>
         public virtual void Show(Report report)
         {
-            ConsoleOutput(report.GetReport(), report.ElapsedTime);
+            ConsoleOutput(report.GetReport());
         }
 
-        protected virtual void ConsoleOutput(List<string> report, TimeSpan elapsedTime)
+        /// <summary>
+        /// Вывод на консоль
+        /// </summary>
+        /// <param name="report">Тело отчета</param>
+        private void ConsoleOutput(List<string> report)
         {
             Console.WriteLine(header);
             foreach (string s in report)
                 Console.WriteLine(s);
-            string str = string.Format("{0:00}:{1:00}:{2:00}",
-            elapsedTime.Hours, elapsedTime.Minutes, elapsedTime.Seconds);
-            Console.WriteLine("Exection time: " + str);
             Console.WriteLine(footer);
         }
     }

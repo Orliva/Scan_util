@@ -4,23 +4,23 @@ using System.Collections.Generic;
 namespace AhoCorasick
 {
     /// <summary>
-    /// Trie that will find and return strings found in a text.
+    /// Трие, которое найдет и вернет строки, найденные в тексте
     /// </summary>
     public class Trie : Trie<string>
     {
         /// <summary>
-        /// Adds a string.
+        /// Добавляем строчки
         /// </summary>
-        /// <param name="s">The string to add.</param>
+        /// <param name="s">Строка для добавления</param>
         public void Add(string s)
         {
             Add(s, s);
         }
 
         /// <summary>
-        /// Adds multiple strings.
+        /// Добавить перечисление строк
         /// </summary>
-        /// <param name="strings">The strings to add.</param>
+        /// <param name="strings">Перечисление для добавления</param>
         public void Add(IEnumerable<string> strings)
         {
             foreach (string s in strings)
@@ -31,71 +31,71 @@ namespace AhoCorasick
     }
 
     /// <summary>
-    /// Trie that will find strings in a text and return values of type <typeparamref name="T"/>
-    /// for each string found.
+    /// Трие, которое найдет строки в тексте и вернет значения типа <typeparamref name = "T" />
+    /// для каждой найденной строки
     /// </summary>
-    /// <typeparam name="TValue">Value type.</typeparam>
+    /// <typeparam name="TValue">Тип значения</typeparam>
     public class Trie<TValue> : Trie<char, TValue>
     {
     }
 
     /// <summary>
-    /// Trie that will find strings or phrases and return values of type <typeparamref name="T"/>
-    /// for each string or phrase found.
+    /// Трие, которое найдет строки или фразы и вернет значения типа <typeparamref name = "T" />
+    /// для каждой найденной строки или фразы
     /// </summary>
     /// <remarks>
-    /// <typeparamref name="T"/> will typically be a char for finding strings
-    /// or a string for finding phrases or whole words.
+    /// <typeparamref name = "T" /> обычно представляет собой символ для поиска строк
+    /// или строку для поиска фраз или целых слов.
     /// </remarks>
-    /// <typeparam name="T">The type of a letter in a word.</typeparam>
-    /// <typeparam name="TValue">The type of the value that will be returned when the word is found.</typeparam>
+    /// <typeparam name="T">Тип буквы в слове.</typeparam>
+    /// <typeparam name="TValue">Тип значения, которое будет возвращено при нахождении слова</typeparam>
     public class Trie<T, TValue>
     {
         /// <summary>
-        /// Root of the trie. It has no value and no parent.
+        /// Корень дерева. У него нет ни значения, ни родителя.
         /// </summary>
         private readonly Node<T, TValue> root = new Node<T, TValue>();
 
         /// <summary>
-        /// Adds a word to the tree.
+        /// Добавляет слово к дереву
         /// </summary>
         /// <remarks>
-        /// A word consists of letters. A node is built for each letter.
-        /// If the letter type is char, then the word will be a string, since it consists of letters.
-        /// But a letter could also be a string which means that a node will be added
-        /// for each word and so the word is actually a phrase.
+        /// Слово состоит из букв. Для каждой буквы строится узел. 
+        /// Если тип буквы - char, то слово будет строкой, поскольку состоит из букв.
+        /// Но буква также может быть строкой, что означает, что узел будет добавлен 
+        /// для каждого слова, и поэтому слово на самом деле является фразой
         /// </remarks>
-        /// <param name="word">The word that will be searched.</param>
-        /// <param name="value">The value that will be returned when the word is found.</param>
+        /// <param name="word">Слово, которое будем искать</param>
+        /// <param name="value">Значение, которое будет возвращено, когда слово будет найдено</param>
         public void Add(IEnumerable<T> word, TValue value)
         {
-            // start at the root
+            // Начинаем с корня
             var node = root;
 
-            // build a branch for the word, one letter at a time
-            // if a letter node doesn't exist, add it
+            // Строим ответвление для слова, по букве за раз
             foreach (T c in word)
             {
                 var child = node[c];
 
+                // Если буквенного узла не существует, добавляем его
                 if (child == null)
                     child = node[c] = new Node<T, TValue>(c, node);
 
                 node = child;
             }
 
-            // mark the end of the branch
-            // by adding a value that will be returned when this word is found in a text
+            // Обозначаем конец ветки
+            // добавляя значение, которое будет возвращено, когда это слово будет найдено в тексте
             node.Values.Add(value);
         }
 
 
         /// <summary>
-        /// Constructs fail or fall links.
+        /// Строим дерево
         /// </summary>
         public void Build()
         {
-            // construction is done using breadth-first-search
+            // Строительство выполняется с использованием поиска в ширину
             var queue = new Queue<Node<T, TValue>>();
             queue.Enqueue(root);
 
@@ -103,11 +103,10 @@ namespace AhoCorasick
             {
                 var node = queue.Dequeue();
 
-                // visit children
+                // Посещаем детей
                 foreach (var child in node)
                     queue.Enqueue(child);
 
-                // fail link of root is root
                 if (node == root)
                 {
                     root.Fail = root;
@@ -126,10 +125,10 @@ namespace AhoCorasick
         }
 
         /// <summary>
-        /// Finds all added words in a text.
+        /// Находит все добавленные слова в тексте
         /// </summary>
-        /// <param name="text">The text to search in.</param>
-        /// <returns>The values that were added for the found words.</returns>
+        /// <param name="text">Текст для поиска</param>
+        /// <returns>Все найденные значения</returns>
         public IEnumerable<TValue> Find(IEnumerable<T> text)
         {
             var node = root;
@@ -150,10 +149,10 @@ namespace AhoCorasick
         }
 
         /// <summary>
-        /// Node in a trie.
+        /// Узел в дереве
         /// </summary>
-        /// <typeparam name="TNode">The same as the parent type.</typeparam>
-        /// <typeparam name="TNodeValue">The same as the parent value type.</typeparam>
+        /// <typeparam name="TNode">То же, что и родительский тип</typeparam>
+        /// <typeparam name="TNodeValue">То же, что и родительский тип значения</typeparam>
         private class Node<TNode, TNodeValue> : IEnumerable<Node<TNode, TNodeValue>>
         {
             private readonly TNode word;
@@ -162,14 +161,14 @@ namespace AhoCorasick
             private readonly List<TNodeValue> values = new List<TNodeValue>();
 
             /// <summary>
-            /// Constructor for the root node.
+            /// Конструктор корневого узла
             /// </summary>
             public Node()
             {
             }
 
             /// <summary>
-            /// Constructor for a node with a word
+            /// Конструктор узла со словом
             /// </summary>
             /// <param name="word"></param>
             /// <param name="parent"></param>
@@ -180,7 +179,7 @@ namespace AhoCorasick
             }
 
             /// <summary>
-            /// Word (or letter) for this node.
+            /// Слово (или буква) для этого узла
             /// </summary>
             public TNode Word
             {
@@ -188,7 +187,7 @@ namespace AhoCorasick
             }
 
             /// <summary>
-            /// Parent node.
+            /// Родительский узел
             /// </summary>
             public Node<TNode, TNodeValue> Parent
             {
@@ -196,7 +195,7 @@ namespace AhoCorasick
             }
 
             /// <summary>
-            /// Fail or fall node.
+            /// Неудачный узел
             /// </summary>
             public Node<TNode, TNodeValue> Fail
             {
@@ -205,10 +204,10 @@ namespace AhoCorasick
             }
 
             /// <summary>
-            /// Children for this node.
+            /// Потомки для этого узла
             /// </summary>
-            /// <param name="c">Child word.</param>
-            /// <returns>Child node.</returns>
+            /// <param name="c">Дочернее слово</param>
+            /// <returns>Дочерний узел</returns>
             public Node<TNode, TNodeValue> this[TNode c]
             {
                 get { return children.ContainsKey(c) ? children[c] : null; }
@@ -216,7 +215,7 @@ namespace AhoCorasick
             }
 
             /// <summary>
-            /// Values for words that end at this node.
+            /// Значения слов, заканчивающихся на этом узле
             /// </summary>
             public List<TNodeValue> Values
             {
